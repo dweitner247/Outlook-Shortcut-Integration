@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Shortcut Add-in</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script>
+    Office.onReady(() => {
+      // Office ist bereit
+    });
+
+    async function createShortcutStory(event) {
+      try {
+        const item = Office.context.mailbox.item;
+        const subject = item.subject;
+        const body = await getBodyAsync(item);
+
+        // API-Konfiguration
+        const shortcutToken = "DEIN_SHORTCUT_TOKEN_HIER_EINFÜGEN"; // 🔒 Achtung!
+        const teamId = "68d27e9b-e00a-49a3-b440-e28b1cb7caa3";
+        const workflowStateId = 500000006;
+
+        const payload = {
+          name: subject,
+          description: body,
+          team_id: teamId,
+          workflow_state_id: workflowStateId
+        };
+
+        const requestUrl = "https://api.app.shortcut.com/api/v3/stories";
+        const requestHeaders = [
+          { "name": "Content-Type", "value": "application/json" },
+          { "name": "Shortcut-Token", "value": shortcutToken }
+        ];
+
+        const request = `
+          <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                         xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Header>
+              <t:RequestServerVersion Version="Exchange2013" 
+               xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types"/>
+            </soap:Header>
+            <soap:Body>
+              <t:Execute xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+                <t:HttpRequest>
+                  <t:Method>POST</t:Method>
+                  <t:Url>${requestUrl}</t:Url>
+                  <t:Headers>
+                    ${requestHeaders.map(h => `<t:Header><t:Name>${h.name}</t:Name><t:Value>${h.value}</t:Value></t:Header>`).join("")}
+                  </t:Headers>
+                  <t:Body>${JSON.stringify(payload)}</t:Body>
+                </t:HttpRequest>
+              </t:Execute>
+            </soap:Body>
+          </soap:Envelope>
+        `;
+
+        Office.context.mailbox.makeEwsRequestAsync(request, (asyncResult) => {
+          if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
+            Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
+              type: "informationalMessage",
+              message: "✅ Story erfolgreich erstellt.",
+              icon: "icon16",
+              persistent: false
+            });
+          } else {
+            Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
+              type: "errorMessage",
+              message: `❌ Fehler: ${asyncResult.error.message}`,
+              persistent: false
+            });
+            console.error("Fehler bei EWS Request:", asyncResult.error);
+          }
+
+          event.completed();
+        });
+
+      } catch (error) {
+        Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
+          type: "errorMessage",
+          message: `❌ Fehler beim Ausführen: ${error.message}`,
+          persistent: false
+        });
+        console.error("Fehler im Ablauf:", error);
+        event.completed();
+      }
+    }
+
+    function getBodyAsync(item) {
+      return new Promise((resolve, reject) => {
+        item.body.getAsync("text", result => {
+          result.status === Office.AsyncResultStatus.Succeeded ? resolve(result.value) : reject(result.error);
+        });
+      });
+    }
+
+    window.createShortcutStory = createShortcutStory;
+  </script>
+</head>
+<body>
+  <h1>Shortcut Integration läuft ✔️ (EWS-Modus)</h1>
+</body>
+</html>
+
