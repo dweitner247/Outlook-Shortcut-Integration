@@ -6,7 +6,7 @@
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
   <script>
     Office.onReady(() => {
-      // Office ist bereit – keine Aktion nötig
+      console.log("✅ Office ist bereit – Add-in geladen.");
     });
 
     async function createShortcutStory(event) {
@@ -19,55 +19,60 @@
 
         // Shortcut API-Daten
         const shortcutToken = "b7a73287-ee90-4e31-9958-785a9ceeba52"; 
-        const teamId = "68d27e9b-e00a-49a3-b440-e28b1cb7caa3";         
-        const workflowStateId = 500000006;                            
+        const teamId = 68d27e9b-e00a-49a3-b440-e28b1cb7caa3;              // ⚠️ Prüfe in Shortcut: ID ist meistens eine Zahl
+        const workflowStateId = 500000006;                                // ⚠️ muss zu deinem Workflow passen
 
-        // Body vorbereiten
+        // Payload vorbereiten
         const payload = {
-          name: subject,
-          description: body,
+          name: subject || "(Kein Betreff)",
+          description: body || "(Kein Inhalt)",
           team_id: teamId,
           workflow_state_id: workflowStateId
         };
 
-        // Logging für Debug-Zwecke
+        // Debug-Logs
         console.log("📤 Shortcut Payload:", payload);
 
-        // Request an Shortcut senden
-        const response = await fetch("https://api.app.shortcut.com/api/v3/stories", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Shortcut-Token": shortcutToken
+        // HTTP-Request über Outlook API
+        Office.context.httpRequestAsync(
+          {
+            url: "https://api.app.shortcut.com/api/v3/stories",
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Shortcut-Token": shortcutToken
+            },
+            body: JSON.stringify(payload)
           },
-          body: JSON.stringify(payload)
-        });
+          function (result) {
+            console.log("📡 Shortcut Status:", result.status);
+            console.log("📬 Shortcut Antwort:", result.responseText);
 
-        // Status und Antwort loggen
-        console.log("📡 Shortcut Status:", response.status);
-        const responseText = await response.text();
-        console.log("📬 Shortcut Antwort:", responseText);
-
-        // Erfolgsmeldung oder Fehler anzeigen
-        if (response.ok) {
-          Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
-            type: "informationalMessage",
-            message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
-            icon: "icon16",
-            persistent: false
-          });
-        } else {
-          throw new Error(`Fehler: ${response.status} - ${responseText}`);
-        }
+            if (result.status === 200) {
+              Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
+                type: "informationalMessage",
+                message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
+                icon: "icon16",
+                persistent: false
+              });
+            } else {
+              Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
+                type: "errorMessage",
+                message: `❌ Fehler: ${result.status} - ${result.responseText}`,
+                persistent: false
+              });
+            }
+            event.completed();
+          }
+        );
 
       } catch (error) {
+        console.error("❌ Fehler im Add-in:", error);
         Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
           type: "errorMessage",
           message: `❌ Fehler beim Erstellen: ${error.message}`,
           persistent: false
         });
-        console.error("❌ Fehler beim Shortcut-Request:", error);
-      } finally {
         event.completed();
       }
     }
@@ -85,6 +90,7 @@
       });
     }
 
+    // Für Manifest
     window.createShortcutStory = createShortcutStory;
   </script>
 </head>
@@ -92,6 +98,8 @@
   <h1>Shortcut Integration läuft ✔️ (Debug-Modus)</h1>
 </body>
 </html>
+
+
 
 
 
