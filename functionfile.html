@@ -6,7 +6,7 @@
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
   <script>
     Office.onReady(() => {
-      console.log("✅ Office ist bereit – Add-in geladen.");
+      console.log("Office ist bereit – Add-in geladen.");
     });
 
     async function createShortcutStory(event) {
@@ -31,7 +31,7 @@
         };
 
         // Debug-Logs
-        console.log("📤 Shortcut Payload:", payload);
+        console.log("Shortcut Payload:", payload);
 
         // HTTP-Request über Outlook API
         Office.context.httpRequestAsync(
@@ -45,20 +45,20 @@
             body: JSON.stringify(payload)
           },
           function (result) {
-            console.log("📡 Shortcut Status:", result.status);
-            console.log("📬 Shortcut Antwort:", result.responseText);
+            console.log("Shortcut Status:", result.status);
+            console.log("Shortcut Antwort:", result.responseText);
 
             if (result.status === 200) {
               Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
                 type: "informationalMessage",
-                message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
+                message: "Story wurde erfolgreich in Shortcut erstellt.",
                 icon: "icon16",
                 persistent: false
               });
             } else {
               Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
                 type: "errorMessage",
-                message: `❌ Fehler: ${result.status} - ${result.responseText}`,
+                message: `Fehler: ${result.status} - ${result.responseText}`,
                 persistent: false
               });
             }
@@ -67,10 +67,10 @@
         );
 
       } catch (error) {
-        console.error("❌ Fehler im Add-in:", error);
+        console.error("Fehler im Add-in:", error);
         Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
           type: "errorMessage",
-          message: `❌ Fehler beim Erstellen: ${error.message}`,
+          message: `Fehler beim Erstellen: ${error.message}`,
           persistent: false
         });
         event.completed();
@@ -95,9 +95,11 @@
   </script>
 </head>
 <body>
-  <h1>Shortcut Integration läuft ✔️ (Debug-Modus)</h1>
+  <h1>Shortcut Integration läuft!(Debug-Modus)</h1>
 </body>
 </html>
+
+
 
 
 
