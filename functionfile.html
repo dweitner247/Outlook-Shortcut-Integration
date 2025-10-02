@@ -13,71 +13,54 @@
       try {
         const item = Office.context.mailbox.item;
 
-        // Betreff und Body der Mail auslesen
-        const subject = item.subject;
+        // Betreff und Body der Mail
+        const subject = item.subject || "(Ohne Betreff)";
         const body = await getBodyAsync(item);
 
-        // Shortcut API-Daten
-        const shortcutToken = "b7a73287-ee90-4e31-9958-785a9ceeba52"; 
-        const teamId = "68d27e9b-e00a-49a3-b440-e28b1cb7caa3";              // ⚠️ Prüfe in Shortcut: ID ist meistens eine Zahl
-        const workflowStateId = "500000006";                                // ⚠️ muss zu deinem Workflow passen
-
-        // Payload vorbereiten
+        // Payload für den Proxy (der hängt workflow_state_id automatisch dran)
         const payload = {
-          name: subject || "(Kein Betreff)",
-          description: body || "(Kein Inhalt)",
-          team_id: teamId,
-          workflow_state_id: workflowStateId
+          name: subject,
+          description: body
         };
 
-        // Debug-Logs
-        console.log("Shortcut Payload:", payload);
+        console.log("Sende Payload an Proxy:", payload);
 
-        // HTTP-Request über Outlook API
-        Office.context.httpRequestAsync(
-          {
-            url: "https://api.app.shortcut.com/api/v3/stories",
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Shortcut-Token": shortcutToken
-            },
-            body: JSON.stringify(payload)
+        // Request an deinen Proxy
+        const response = await fetch("http://localhost:3000/shortcut", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
           },
-          function (result) {
-            console.log("Shortcut Status:", result.status);
-            console.log("Shortcut Antwort:", result.responseText);
+          body: JSON.stringify(payload)
+        });
 
-            if (result.status === 200) {
-              Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
-                type: "informationalMessage",
-                message: "Story wurde erfolgreich in Shortcut erstellt.",
-                icon: "icon16",
-                persistent: false
-              });
-            } else {
-              Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
-                type: "errorMessage",
-                message: `Fehler: ${result.status} - ${result.responseText}`,
-                persistent: false
-              });
-            }
-            event.completed();
-          }
-        );
+        const result = await response.json();
+        console.log("Antwort vom Proxy:", result);
+
+        if (response.ok) {
+          Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
+            type: "informationalMessage",
+            message: "Story wurde erfolgreich in Shortcut erstellt.",
+            icon: "icon16",
+            persistent: false
+          });
+        } else {
+          throw new Error(`Fehler: ${response.status} - ${JSON.stringify(result)}`);
+        }
 
       } catch (error) {
-        console.error("Fehler im Add-in:", error);
+        console.error("Fehler beim Erstellen:", error);
         Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
           type: "errorMessage",
-          message: `Fehler beim Erstellen: ${error.message}`,
+          message: `Fehler: ${error.message}`,
           persistent: false
         });
+      } finally {
         event.completed();
       }
     }
 
-    // Hilfsfunktion: E-Mail-Body abrufen
+    // Hilfsfunktion: Body auslesen
     function getBodyAsync(item) {
       return new Promise((resolve, reject) => {
         item.body.getAsync("text", result => {
@@ -90,16 +73,14 @@
       });
     }
 
-    // Für Manifest
+    // Funktion global registrieren
     window.createShortcutStory = createShortcutStory;
   </script>
 </head>
 <body>
-  <h1>Shortcut Integration läuft!(Debug-Modus)</h1>
+  <h1>Shortcut Integration</h1>
 </body>
 </html>
-
-
 
 
 
