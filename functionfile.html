@@ -7,6 +7,16 @@
   <script>
     Office.onReady(() => {
       console.log("Office ist bereit – Add-in geladen.");
+
+      // 🧪 Testfunktion: Prüft, ob Dialogfenster geöffnet werden kann
+      window.testDialog = () => {
+        console.log("Starte Dialog-Test...");
+        Office.context.ui.displayDialogAsync(
+          "https://www.microsoft.com",
+          { height: 60, width: 60, displayInIframe: true },
+          result => console.log("Dialog-Status:", result.status)
+        );
+      };
     });
 
     async function createShortcutStory(event) {
@@ -97,6 +107,8 @@
   <h1>Shortcut Integration</h1>
 </body>
 </html>
+
+
 
 
 
