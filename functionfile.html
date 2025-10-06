@@ -38,10 +38,10 @@
         console.log("Antwort vom Proxy:", result);
 
         if (response.ok) {
-          // ✅ Erfolgreich erstellt → Link anzeigen
           const storyUrl = result.app_url;
+          console.log("🔗 Story-URL:", storyUrl);
 
-          // Erste Nachricht: Erfolgsmeldung
+          // ✅ Erfolgsmeldung
           Office.context.mailbox.item.notificationMessages.replaceAsync("status1", {
             type: "informationalMessage",
             message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
@@ -49,17 +49,20 @@
             persistent: false
           });
 
-          // Zweite Nachricht: Klickbarer Link zur Story
+          // 🔗 Zweite Meldung (mit Öffnen-Funktion)
           if (storyUrl) {
             Office.context.mailbox.item.notificationMessages.replaceAsync("status2", {
               type: "informationalMessage",
-              message: `🔗 Öffnen: ${storyUrl}`,
+              message: "🔗 Story-Link öffnen (hier klicken!)",
               icon: "icon16",
-              persistent: false
+              persistent: false,
+              actions: [{
+                actionType: "openUrl",
+                actionText: "Story öffnen",
+                commandId: storyUrl
+              }]
             });
           }
-
-          console.log("🔗 Story-URL:", storyUrl);
 
         } else {
           throw new Error(`Fehler: ${response.status} - ${JSON.stringify(result)}`);
