@@ -49,16 +49,25 @@
             persistent: false
           });
 
-          // 🪟 Dialog-Fenster mit klickbarem Link öffnen
+          // 🪟 Dialog-Fenster öffnen (deine eigene dialog.html)
           if (storyUrl) {
+            const dialogUrl = `https://dweitner247.github.io/Outlook-Shortcut-Integration/dialog.html?url=${encodeURIComponent(storyUrl)}`;
+            console.log("Öffne Dialog:", dialogUrl);
+
+            // kleine Verzögerung, damit Outlook die Notification erst rendert
             setTimeout(() => {
-              const dialogUrl = `https://dweitner247.github.io/Outlook-Shortcut-Integration/dialog.html?url=${encodeURIComponent(storyUrl)}`;
               Office.context.ui.displayDialogAsync(
                 dialogUrl,
-                { height: 40, width: 40, displayInIframe: true },
-                result => console.log("Dialog geöffnet:", result.status)
+                { height: 45, width: 45, displayInIframe: true },
+                asyncResult => {
+                  if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
+                    console.log("Dialog erfolgreich geöffnet.");
+                  } else {
+                    console.error("Dialog konnte nicht geöffnet werden:", asyncResult.error);
+                  }
+                }
               );
-            }, 1000); // kleine Verzögerung für bessere Nutzererfahrung
+            }, 1200);
           }
 
         } else {
@@ -98,6 +107,7 @@
   <h1>Shortcut Integration</h1>
 </body>
 </html>
+
 
 
 
