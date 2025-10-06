@@ -38,12 +38,29 @@
         console.log("Antwort vom Proxy:", result);
 
         if (response.ok) {
-          Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
+          // ✅ Erfolgreich erstellt → Link anzeigen
+          const storyUrl = result.app_url;
+
+          // Erste Nachricht: Erfolgsmeldung
+          Office.context.mailbox.item.notificationMessages.replaceAsync("status1", {
             type: "informationalMessage",
-            message: "Story wurde erfolgreich in Shortcut erstellt.",
+            message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
             icon: "icon16",
             persistent: false
           });
+
+          // Zweite Nachricht: Klickbarer Link zur Story
+          if (storyUrl) {
+            Office.context.mailbox.item.notificationMessages.replaceAsync("status2", {
+              type: "informationalMessage",
+              message: `🔗 Öffnen: ${storyUrl}`,
+              icon: "icon16",
+              persistent: false
+            });
+          }
+
+          console.log("🔗 Story-URL:", storyUrl);
+
         } else {
           throw new Error(`Fehler: ${response.status} - ${JSON.stringify(result)}`);
         }
@@ -81,6 +98,7 @@
   <h1>Shortcut Integration</h1>
 </body>
 </html>
+
 
 
 
