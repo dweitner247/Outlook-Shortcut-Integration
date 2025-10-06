@@ -17,7 +17,7 @@
         const subject = item.subject || "(Ohne Betreff)";
         const body = await getBodyAsync(item);
 
-        // Payload für den Proxy (der hängt workflow_state_id automatisch dran)
+        // Payload für den Proxy
         const payload = {
           name: subject,
           description: body
@@ -41,7 +41,7 @@
           const storyUrl = result.app_url;
           console.log("🔗 Story-URL:", storyUrl);
 
-          // ✅ Erfolgsmeldung
+          // ✅ Erfolgsmeldung in Outlook-Leiste
           Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
             type: "informationalMessage",
             message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
@@ -49,14 +49,15 @@
             persistent: false
           });
 
-          // 🔗 Zweite Infozeile mit klickbarem Link (Outlook Web erkennt das automatisch)
+          // 🪟 Klickbaren Link im Dialog anzeigen (Variante 1)
           if (storyUrl) {
-            Office.context.mailbox.item.notificationMessages.replaceAsync("status_link", {
-              type: "informationalMessage",
-              message: `🔗 Öffnen: <${storyUrl}>`,
-              icon: "icon16",
-              persistent: false
-            });
+            setTimeout(() => {
+              Office.context.ui.displayDialogAsync(
+                storyUrl,
+                { height: 60, width: 60, displayInIframe: true },
+                result => console.log("Dialog geöffnet:", result.status)
+              );
+            }, 1000); // kleine Verzögerung, damit Erfolgsmeldung sichtbar bleibt
           }
 
         } else {
@@ -96,6 +97,7 @@
   <h1>Shortcut Integration</h1>
 </body>
 </html>
+
 
 
 
