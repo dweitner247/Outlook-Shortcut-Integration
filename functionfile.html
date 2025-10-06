@@ -49,11 +49,14 @@
             persistent: false
           });
 
-          // 🔗 Automatisch Story in neuem Tab öffnen
+          // 🔗 Zweite Infozeile mit klickbarem Link (Outlook Web erkennt das automatisch)
           if (storyUrl) {
-            setTimeout(() => {
-              window.open(storyUrl, "_blank");
-            }, 1500); // kleine Verzögerung, damit Outlook die Nachricht anzeigt
+            Office.context.mailbox.item.notificationMessages.replaceAsync("status_link", {
+              type: "informationalMessage",
+              message: `🔗 Öffnen: <${storyUrl}>`,
+              icon: "icon16",
+              persistent: false
+            });
           }
 
         } else {
@@ -93,6 +96,7 @@
   <h1>Shortcut Integration</h1>
 </body>
 </html>
+
 
 
 
