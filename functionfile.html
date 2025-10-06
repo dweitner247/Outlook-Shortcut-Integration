@@ -7,16 +7,6 @@
   <script>
     Office.onReady(() => {
       console.log("Office ist bereit – Add-in geladen.");
-
-      // 🧪 Testfunktion: Prüft, ob Dialogfenster geöffnet werden kann
-      window.testDialog = () => {
-        console.log("Starte Dialog-Test...");
-        Office.context.ui.displayDialogAsync(
-          "https://www.microsoft.com",
-          { height: 60, width: 60, displayInIframe: true },
-          result => console.log("Dialog-Status:", result.status)
-        );
-      };
     });
 
     async function createShortcutStory(event) {
@@ -35,7 +25,7 @@
 
         console.log("Sende Payload an Proxy:", payload);
 
-        // Request an deinen Proxy
+        // Request an Proxy
         const response = await fetch("http://localhost:3000/shortcut", {
           method: "POST",
           headers: {
@@ -51,7 +41,7 @@
           const storyUrl = result.app_url;
           console.log("🔗 Story-URL:", storyUrl);
 
-          // ✅ Erfolgsmeldung in Outlook-Leiste
+          // Erfolgsmeldung
           Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
             type: "informationalMessage",
             message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
@@ -59,17 +49,17 @@
             persistent: false
           });
 
-          // 🪟 Klickbaren Link im Dialog anzeigen (Variante 1)
+          // 🧭 Optionaler Button in Outlook (Klick öffnet Shortcut-Story)
           if (storyUrl) {
             setTimeout(() => {
-              Office.context.ui.displayDialogAsync(
-                storyUrl,
-                { height: 60, width: 60, displayInIframe: true },
-                result => console.log("Dialog geöffnet:", result.status)
-              );
-            }, 1000); // kleine Verzögerung, damit Erfolgsmeldung sichtbar bleibt
+              Office.context.mailbox.item.notificationMessages.addAsync("storyLink", {
+                type: "informationalMessage",
+                message: `🔗 <a href='${storyUrl}' target='_blank'>Story öffnen</a>`,
+                icon: "icon16",
+                persistent: false
+              }, result => console.log("Link angezeigt:", result.status));
+            }, 1200);
           }
-
         } else {
           throw new Error(`Fehler: ${response.status} - ${JSON.stringify(result)}`);
         }
@@ -99,7 +89,6 @@
       });
     }
 
-    // Funktion global registrieren
     window.createShortcutStory = createShortcutStory;
   </script>
 </head>
@@ -107,6 +96,7 @@
   <h1>Shortcut Integration</h1>
 </body>
 </html>
+
 
 
 
