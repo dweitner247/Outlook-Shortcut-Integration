@@ -41,7 +41,7 @@
           const storyUrl = result.app_url;
           console.log("🔗 Story-URL:", storyUrl);
 
-          // ✅ Erfolgsmeldung in Outlook-Leiste
+          // ✅ Hauptmeldung in Outlook-Leiste
           Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
             type: "informationalMessage",
             message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
@@ -49,25 +49,25 @@
             persistent: false
           });
 
-          // 🪟 Dialog-Fenster öffnen (deine eigene dialog.html)
+          // 🔗 Zweite Meldung mit klickbarem Link und Auto-Öffnen
           if (storyUrl) {
-            const dialogUrl = `https://dweitner247.github.io/Outlook-Shortcut-Integration/dialog.html?url=${encodeURIComponent(storyUrl)}`;
-            console.log("Öffne Dialog:", dialogUrl);
+            // zweite Infozeile mit sichtbarem Link
+            Office.context.mailbox.item.notificationMessages.replaceAsync("storyLink", {
+              type: "informationalMessage",
+              message: `📎 Öffnen: ${storyUrl}`,
+              icon: "icon16",
+              persistent: false
+            });
 
-            // kleine Verzögerung, damit Outlook die Notification erst rendert
+            // automatisches Öffnen im Standardbrowser
             setTimeout(() => {
-              Office.context.ui.displayDialogAsync(
-                dialogUrl,
-                { height: 45, width: 45, displayInIframe: true },
-                asyncResult => {
-                  if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
-                    console.log("Dialog erfolgreich geöffnet.");
-                  } else {
-                    console.error("Dialog konnte nicht geöffnet werden:", asyncResult.error);
-                  }
-                }
-              );
-            }, 1200);
+              try {
+                window.open(storyUrl, "_blank");
+                console.log("Shortcut-Story automatisch geöffnet:", storyUrl);
+              } catch (err) {
+                console.warn("Konnte URL nicht automatisch öffnen:", err);
+              }
+            }, 1500);
           }
 
         } else {
@@ -107,7 +107,115 @@
   <h1>Shortcut Integration</h1>
 </body>
 </html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Shortcut Add-in</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script>
+    Office.onReady(() => {
+      console.log("Office ist bereit – Add-in geladen.");
+    });
 
+    async function createShortcutStory(event) {
+      try {
+        const item = Office.context.mailbox.item;
+
+        // Betreff und Body der Mail
+        const subject = item.subject || "(Ohne Betreff)";
+        const body = await getBodyAsync(item);
+
+        // Payload für den Proxy
+        const payload = {
+          name: subject,
+          description: body
+        };
+
+        console.log("Sende Payload an Proxy:", payload);
+
+        // Request an deinen Proxy
+        const response = await fetch("http://localhost:3000/shortcut", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        console.log("Antwort vom Proxy:", result);
+
+        if (response.ok) {
+          const storyUrl = result.app_url;
+          console.log("🔗 Story-URL:", storyUrl);
+
+          // ✅ Hauptmeldung in Outlook-Leiste
+          Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
+            type: "informationalMessage",
+            message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
+            icon: "icon16",
+            persistent: false
+          });
+
+          // 🔗 Zweite Meldung mit klickbarem Link und Auto-Öffnen
+          if (storyUrl) {
+            // zweite Infozeile mit sichtbarem Link
+            Office.context.mailbox.item.notificationMessages.replaceAsync("storyLink", {
+              type: "informationalMessage",
+              message: `📎 Öffnen: ${storyUrl}`,
+              icon: "icon16",
+              persistent: false
+            });
+
+            // automatisches Öffnen im Standardbrowser
+            setTimeout(() => {
+              try {
+                window.open(storyUrl, "_blank");
+                console.log("Shortcut-Story automatisch geöffnet:", storyUrl);
+              } catch (err) {
+                console.warn("Konnte URL nicht automatisch öffnen:", err);
+              }
+            }, 1500);
+          }
+
+        } else {
+          throw new Error(`Fehler: ${response.status} - ${JSON.stringify(result)}`);
+        }
+
+      } catch (error) {
+        console.error("Fehler beim Erstellen:", error);
+        Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
+          type: "errorMessage",
+          message: `Fehler: ${error.message}`,
+          persistent: false
+        });
+      } finally {
+        event.completed();
+      }
+    }
+
+    // Hilfsfunktion: Body auslesen
+    function getBodyAsync(item) {
+      return new Promise((resolve, reject) => {
+        item.body.getAsync("text", result => {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            resolve(result.value);
+          } else {
+            reject(result.error);
+          }
+        });
+      });
+    }
+
+    // Funktion global registrieren
+    window.createShortcutStory = createShortcutStory;
+  </script>
+</head>
+<body>
+  <h1>Shortcut Integration</h1>
+</body>
+</html>
 
 
 
