@@ -25,7 +25,7 @@
 
         console.log("Sende Payload an Proxy:", payload);
 
-        // Request an Proxy
+        // Request an deinen Proxy
         const response = await fetch("http://localhost:3000/shortcut", {
           method: "POST",
           headers: {
@@ -41,7 +41,7 @@
           const storyUrl = result.app_url;
           console.log("🔗 Story-URL:", storyUrl);
 
-          // Erfolgsmeldung
+          // ✅ Erfolgsmeldung in Outlook-Leiste
           Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
             type: "informationalMessage",
             message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
@@ -49,17 +49,18 @@
             persistent: false
           });
 
-          // 🧭 Optionaler Button in Outlook (Klick öffnet Shortcut-Story)
+          // 🪟 Dialog-Fenster mit klickbarem Link öffnen
           if (storyUrl) {
             setTimeout(() => {
-              Office.context.mailbox.item.notificationMessages.addAsync("storyLink", {
-                type: "informationalMessage",
-                message: `🔗 <a href='${storyUrl}' target='_blank'>Story öffnen</a>`,
-                icon: "icon16",
-                persistent: false
-              }, result => console.log("Link angezeigt:", result.status));
-            }, 1200);
+              const dialogUrl = `https://dweitner247.github.io/Outlook-Shortcut-Integration/dialog.html?url=${encodeURIComponent(storyUrl)}`;
+              Office.context.ui.displayDialogAsync(
+                dialogUrl,
+                { height: 40, width: 40, displayInIframe: true },
+                result => console.log("Dialog geöffnet:", result.status)
+              );
+            }, 1000); // kleine Verzögerung für bessere Nutzererfahrung
           }
+
         } else {
           throw new Error(`Fehler: ${response.status} - ${JSON.stringify(result)}`);
         }
@@ -89,6 +90,7 @@
       });
     }
 
+    // Funktion global registrieren
     window.createShortcutStory = createShortcutStory;
   </script>
 </head>
@@ -96,8 +98,6 @@
   <h1>Shortcut Integration</h1>
 </body>
 </html>
-
-
 
 
 
