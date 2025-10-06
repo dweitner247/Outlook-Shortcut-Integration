@@ -42,26 +42,18 @@
           console.log("🔗 Story-URL:", storyUrl);
 
           // ✅ Erfolgsmeldung
-          Office.context.mailbox.item.notificationMessages.replaceAsync("status1", {
+          Office.context.mailbox.item.notificationMessages.replaceAsync("status", {
             type: "informationalMessage",
             message: "✅ Story wurde erfolgreich in Shortcut erstellt.",
             icon: "icon16",
             persistent: false
           });
 
-          // 🔗 Zweite Meldung (mit Öffnen-Funktion)
+          // 🔗 Automatisch Story in neuem Tab öffnen
           if (storyUrl) {
-            Office.context.mailbox.item.notificationMessages.replaceAsync("status2", {
-              type: "informationalMessage",
-              message: "🔗 Story-Link öffnen (hier klicken!)",
-              icon: "icon16",
-              persistent: false,
-              actions: [{
-                actionType: "openUrl",
-                actionText: "Story öffnen",
-                commandId: storyUrl
-              }]
-            });
+            setTimeout(() => {
+              window.open(storyUrl, "_blank");
+            }, 1500); // kleine Verzögerung, damit Outlook die Nachricht anzeigt
           }
 
         } else {
