@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp 
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+  xsi:type="MailApp">
+
+  <!-- Grundeinstellungen -->
+  <Id>971E76EF-D73E-567F-ADAE-5A76B39052C8</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>ShortcutIntegration</ProviderName>
+  <DefaultLocale>de-DE</DefaultLocale>
+  <DisplayName DefaultValue="Shortcut Story erstellen"/>
+  <Description DefaultValue="Erstellt eine Shortcut Story aus der aktuellen E-Mail."/>
+  <IconUrl DefaultValue="https://dweitner247.github.io/Outlook-Shortcut-Integration/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://dweitner247.github.io/Outlook-Shortcut-Integration/icon-128.png"/>
+  <SupportUrl DefaultValue="https://dweitner247.github.io"/>
+
+  <!-- Erlaubte Domains -->
+  <AppDomains>
+    <AppDomain>https://dweitner247.github.io</AppDomain>
+  </AppDomains>
+
+  <!-- Hostdefinition -->
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+
+  <!-- Anforderungen -->
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.5"/>
+    </Sets>
+  </Requirements>
+
+  <!-- Form-Einstellungen (Taskpane – können wir später noch entfernen, wenn ungenutzt) -->
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://dweitner247.github.io/Outlook-Shortcut-Integration/taskpane.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+
+  <!-- Berechtigungen -->
+  <Permissions>ReadItem</Permissions>
+
+  <!-- Regeln – nur für Lesemodus -->
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/>
+  </Rule>
+
+  <!-- Erweiterungen -->
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+
+      <Hosts>
+        <Host xsi:type="MailHost">
+          <DesktopFormFactor>
+            <SupportsSharedFolders>true</SupportsSharedFolders>
+            <FunctionFile resid="functionFile"/>
+
+            <!-- Button im Ribbon -->
+            <ExtensionPoint xsi:type="MessageReadCommandSurface">
+              <OfficeTab id="TabDefault">
+                <Group id="msgReadGroup">
+                  <Label resid="groupLabel"/>
+
+                  <Control xsi:type="Button" id="createShortcutStoryButton">
+                    <Label resid="buttonLabel"/>
+                    <Supertip>
+                      <Title resid="buttonLabel"/>
+                      <Description resid="buttonTooltip"/>
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="icon16"/>
+                      <bt:Image size="32" resid="icon32"/>
+                      <bt:Image size="80" resid="icon80"/>
+                    </Icon>
+                    <Action xsi:type="ExecuteFunction">
+                      <FunctionName>createShortcutStory</FunctionName>
+                    </Action>
+                  </Control>
+
+                </Group>
+              </OfficeTab>
+            </ExtensionPoint>
+
+          </DesktopFormFactor>
+        </Host>
+      </Hosts>
+
+      <!-- Ressourcen -->
+      <Resources>
+        <bt:Images>
+          <bt:Image id="icon16" DefaultValue="https://dweitner247.github.io/Outlook-Shortcut-Integration/icon-16.png"/>
+          <bt:Image id="icon32" DefaultValue="https://dweitner247.github.io/Outlook-Shortcut-Integration/icon-32.png"/>
+          <bt:Image id="icon80" DefaultValue="https://dweitner247.github.io/Outlook-Shortcut-Integration/icon-80.png"/>
+        </bt:Images>
+        <bt:Urls>
+          <bt:Url id="functionFile" DefaultValue="https://dweitner247.github.io/Outlook-Shortcut-Integration/functionfile.html"/>
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="groupLabel" DefaultValue="Shortcut"/>
+          <bt:String id="buttonLabel" DefaultValue="Zu Shortcut senden"/>
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="buttonTooltip" DefaultValue="Erstellt eine Story in Shortcut aus dieser E-Mail."/>
+        </bt:LongStrings>
+      </Resources>
+
+    </VersionOverrides>
+  </VersionOverrides>
+
+</OfficeApp>
